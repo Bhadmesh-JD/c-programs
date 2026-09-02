@@ -1,0 +1,90 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Structure for hash table entries
+typedef struct {
+    int key;   // Stores the number from the array
+    int value; // Stores its corresponding index
+} HashEntry;
+
+// Simple hash map implementation for this problem
+typedef struct {
+    HashEntry* entries;
+    int size;
+} HashMap;
+
+// Initialize hash map
+HashMap* createMap(int size) {
+    HashMap* map = (HashMap*)malloc(sizeof(HashMap));
+    map->size = size * 2; // Extra space to reduce collisions
+    map->entries = (HashEntry*)calloc(map->size, sizeof(HashEntry));
+    for (int i = 0; i < map->size; i++) {
+        map->entries[i].value = -1; // -1 indicates an empty slot
+    }
+    return map;
+}
+
+// Hash function handling negative numbers
+int hash(int key, int size) {
+    int h = key % size;
+    return h < 0 ? h + size : h;
+}
+
+// Insert into hash map (Linear probing for collisions)
+void insert(HashMap* map, int key, int value) {
+    int idx = hash(key, map->size);
+    while (map->entries[idx].value != -1) {
+        idx = (idx + 1) % map->size;
+    }
+    map->entries[idx].key = key;
+    map->entries[idx].value = value;
+}
+
+// Search in hash map
+int search(HashMap* map, int key) {
+    int idx = hash(key, map->size);
+    int startIdx = idx;
+    while (map->entries[idx].value != -1) {
+        if (map->entries[idx].key == key) {
+            return map->entries[idx].value;
+        }
+        idx = (idx + 1) % map->size;
+        if (idx == startIdx) break; // Wrapped around completely
+    }
+    return -1; // Not found
+}
+
+// Free memory allocation
+void freeMap(HashMap* map) {
+    free(map->entries);
+    free(map);
+}
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* twoSum(int* nums, int numsSize, int target, int* returnSize) {
+    *returnSize = 2;
+    int* result = (int*)malloc(2 * sizeof(int));
+    HashMap* map = createMap(numsSize);
+
+    for (int i = 0; i < numsSize; i++) {
+        int complement = target - nums[i];
+        int complementIdx = search(map, complement);
+
+        // If complement exists in map, solution is found
+        if (complementIdx != -1) {
+            result[0] = complementIdx;
+            result[1] = i;
+            freeMap(map);
+            return result;
+        }
+        
+        // Otherwise, store current number and index
+        insert(map, nums[i], i);
+    }
+
+    freeMap(map);
+    returnSize = 0;
+    return NULL; // Should not reach here based on problem constraints
+}

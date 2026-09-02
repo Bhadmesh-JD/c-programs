@@ -1,0 +1,32 @@
+#include <stdlib.h>
+#include <string.h>
+
+char* convert(char* s, int numRows) {
+    // If there is only one row or the string is too short, no zigzag happens
+    if (numRows <= 1 || s == NULL || s[0] == '\0') {
+        return s;
+    }
+
+    int len = strlen(s);
+    char* result = (char*)malloc((len + 1) * sizeof(char));
+    int resIdx = 0;
+
+    // The full cycle jump distance between vertical column steps
+    int cycleLen = 2 * numRows - 2;
+
+    for (int i = 0; i < numRows; i++) {
+        for (int j = 0; j + i < len; j += cycleLen) {
+            // 1. Append the character from the main vertical column
+            result[resIdx++] = s[j + i];
+
+            // 2. Append the inner diagonal character (skip for first and last rows)
+            int diagonalIdx = j + cycleLen - i;
+            if (i != 0 && i != numRows - 1 && diagonalIdx < len) {
+                result[resIdx++] = s[diagonalIdx];
+            }
+        }
+    }
+
+    result[resIdx] = '\0'; // Properly null-terminate the dynamically allocated string
+    return result;
+}
